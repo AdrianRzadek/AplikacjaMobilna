@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "leaflet": "^1.9.4",
-    "leaflet-cordova": "^0.7.8"
+    "leaflet-cordova": "^0.7.8",
+    "leaflet-routing-machine": "^3.2.12"
   }
 }

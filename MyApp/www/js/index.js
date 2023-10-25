@@ -46,8 +46,20 @@ function onError(error) {
 
 navigator.geolocation.getCurrentPosition(onSuccess, onError);
 
-var map = L.map('map').setView([51.505, -0.09], 13);
+var map = L.map('map').setView([49.7727974, 19.0603719], 13);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
 
+L.marker([49.7727974, 19.0603719]).addTo(map)
+    .bindPopup('A pretty CSS popup.<br> Easily customizable.')
+    .openPopup();
+    L.Routing.control({
+        waypoints: [
+          L.latLng(49.7727974, 19.0603719),
+          L.latLng(49.7798990, 19.0603930)
+        ]
+      }).addTo(map);
 
 function onDeviceReady() {
     // Cordova is now initialized. Have fun!
