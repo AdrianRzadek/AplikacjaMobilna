@@ -1,5 +1,5 @@
 // In src/v1/routes/workoutRoutes.js
-import express from 'express';
+const express = require('express');
 
 import * as pointController from "../../controllers/pointController";
 const router = express.Router();

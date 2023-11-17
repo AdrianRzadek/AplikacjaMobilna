@@ -1,32 +1,32 @@
-import { Request, Response } from 'express';
-import * as pointService from "../services/pointService";
-const getAllPoints = (req: Request, res: Response): void => {
+const express = require("express");
+const pointService= require( "../services/pointService");
+const getAllPoints = (req, res) => {
   const allPoints = pointService.getAllPoints();
   res.send("Get all workouts");
 };
 
-const getOnePoint = (req: Request, res: Response): void => {
+const getOnePoint  = (req, res) => {
   const point = pointService.getOnePoint();
   res.send("Get an existing point");
 };
 
-const createNewPoint = (req: Request, res: Response): void => {
+const createNewPoint  = (req, res) => {
   const createdpoint = pointService.createNewPoint();
   res.send("Create a new point");
 };
 
-const updateOnePoint = (req: Request, res: Response): void => {
+const updateOnePoint  = (req, res) => {
   const updatedpoint = pointService.updateOnePoint();
   res.send("Update an existing point");
 };
 
-const deleteOnePoint = (req: Request, res: Response): void => {
+const deleteOnePoint  = (req, res) => {
   pointService.deleteOnePoint();
   res.send("Delete an existing point");
 };
 
   
-export  {
+module.exports = {
     getAllPoints,
     getOnePoint,
     createNewPoint,
