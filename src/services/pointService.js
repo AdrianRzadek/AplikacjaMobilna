@@ -18,7 +18,7 @@ const getAllPoints = () => {
     return;
   };
   
- export  {
+  module.exports =  {
     getAllPoints,
     getOnePoint,
     createNewPoint,

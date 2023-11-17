@@ -1,4 +1,4 @@
-import express from 'express';
+const express = require('express');
 const v1Router = require("./v1/routes/pointRoutes")
 const app = express();
 const PORT = process.env.PORT || 3000;
