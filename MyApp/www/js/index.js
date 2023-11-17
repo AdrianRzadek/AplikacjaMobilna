@@ -25,41 +25,69 @@
 
 document.addEventListener('deviceready', onDeviceReady, false);
 
+// Declare a global object to store geolocation data
+var geolocationData = {};
 
-var onSuccess = function(position) {
-    alert('Latitude: '          + position.coords.latitude          + '\n' +
-          'Longitude: '         + position.coords.longitude         + '\n' +
-          'Altitude: '          + position.coords.altitude          + '\n' +
-          'Accuracy: '          + position.coords.accuracy          + '\n' +
-          'Altitude Accuracy: ' + position.coords.altitudeAccuracy  + '\n' +
-          'Heading: '           + position.coords.heading           + '\n' +
-          'Speed: '             + position.coords.speed             + '\n' +
-          'Timestamp: '         + position.timestamp                + '\n');
-};
+// Define a function to get geolocation data as a Promise
+function getGeolocationData() {
+  return new Promise((resolve, reject) => {
+    // Define the success callback function
+    var onSuccess = function(position) {
+      geolocationData = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        altitude: position.coords.altitude,
+        accuracy: position.coords.accuracy,
+        altitudeAccuracy: position.coords.altitudeAccuracy,
+        heading: position.coords.heading,
+        speed: position.coords.speed,
+        timestamp: position.timestamp
+      };
 
-// onError Callback receives a PositionError object
-//
-function onError(error) {
-    alert('code: '    + error.code    + '\n' +
-          'message: ' + error.message + '\n');
+      // Resolve the Promise with geolocationData
+      resolve(geolocationData);
+    };
+
+    // Define the error callback function
+    function onError(error) {
+      reject(error);
+    }
+
+    // Get the current geolocation position
+    navigator.geolocation.getCurrentPosition(onSuccess, onError);
+  });
 }
 
-navigator.geolocation.getCurrentPosition(onSuccess, onError);
+// Use the Promise to get geolocation data
+getGeolocationData()
+  .then(data => {
+    console.log(data.latitude);
+    console.log(data.longitude);
+    // You can use other geolocationData properties here
+    var x =data.latitude;
+    var y =data.longitude;
 
-var map = L.map('map').setView([49.7727974, 19.0603719], 13);
+    console.log(x);
+    console.log(y);
+
+var map = L.map('map').setView([x, y], 13);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
-L.marker([49.7727974, 19.0603719]).addTo(map)
-    .bindPopup('A pretty CSS popup.<br> Easily customizable.')
+L.marker([x, y]).addTo(map)
+    .bindPopup('Jesteś tutaj')
     .openPopup();
     L.Routing.control({
         waypoints: [
-          L.latLng(49.7727974, 19.0603719),
+          L.latLng(x, y),
           L.latLng(49.7798990, 19.0603930)
         ]
       }).addTo(map);
+    })
+    .catch(error => {
+      console.error('Error getting geolocation data:', error.message);
+    });
 
 function onDeviceReady() {
     // Cordova is now initialized. Have fun!
