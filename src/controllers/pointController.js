@@ -1,28 +1,100 @@
 const express = require("express");
 const pointService= require( "../services/pointService");
+
+
 const getAllPoints = (req, res) => {
   const allPoints = pointService.getAllPoints();
-  res.send("Get all workouts");
+  res.send({ status: "OK", data: allPoints });
 };
 
 const getOnePoint  = (req, res) => {
-  const point = pointService.getOnePoint();
-  res.send("Get an existing point");
+  const {params: { pointId },} = req;
+  if (!pointId) {
+    return;
+  }
+  const point = pointService.getOnePoint(pointId);
+  res.send({ status: "OK", data: point });
+ 
 };
 
 const createNewPoint  = (req, res) => {
-  const createdpoint = pointService.createNewPoint();
-  res.send("Create a new point");
+  const { body } = req;
+  if (
+    !body.name
+   
+  ){
+    res
+      .status(400)
+      .send({
+        status: "FAILED",
+        data: {
+          error:
+            "One of the following keys is missing or is empty in request body: 'name', 'mode', 'equipment', 'exercises', 'trainerTips'",
+        },
+      });
+    return;
+  }
+
+  const newPoint = {
+    name: body.name,
+    x: body.x,
+    y: body.y
+  };
+  try {
+  const createdPoint = pointService.createNewPoint(newPoint);
+
+  res.status(201).send({ status: "OK", data: createdPoint });
+} catch (error) {
+  res
+  .status(error?.status || 500)
+  .send({ status: "FAILED", data: { error: error?.message || error } });
+
+}
 };
 
 const updateOnePoint  = (req, res) => {
-  const updatedpoint = pointService.updateOnePoint();
-  res.send("Update an existing point");
+  const {
+    body,
+    params: { pointId },
+  } = req;
+  if (!pointId) {
+    res
+      .status(400)
+      .send({
+        status: "FAILED",
+        data: { error: "Parameter ':workoutId' can not be empty" },
+      });
+  }
+  try {
+  const updatedPoint = pointService.updateOnePoint(pointId, body);
+  res.send({ status: "OK", data: updatedPoint });
+} catch (error) {
+  res
+    .status(error?.status || 500)
+    .send({ status: "FAILED", data: { error: error?.message || error } });
+}
 };
 
 const deleteOnePoint  = (req, res) => {
-  pointService.deleteOnePoint();
-  res.send("Delete an existing point");
+  const {
+    params: { pointId },
+  } = req;
+  if (!pointId) {
+    res
+      .status(400)
+      .send({
+        status: "FAILED",
+        data: { error: "Parameter ':workoutId' can not be empty" },
+      });
+  }
+  try {
+  pointService.deleteOnePoint(pointId);
+  res.status(204).send({ status: "OK" });
+} catch (error) {
+  res
+    .status(error?.status || 500)
+    .send({ status: "FAILED", data: { error: error?.message || error } });
+}
 };
 
   
