@@ -21,12 +21,11 @@
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 
 
-
-
 document.addEventListener('deviceready', onDeviceReady, false);
 
+
 // Declare a global object to store geolocation data
-var geolocationData = {};
+//var geolocationData = {};
 
 // Define a function to get geolocation data as a Promise
 function getGeolocationData() {
@@ -75,6 +74,22 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
+
+
+
+  // Example GET request
+  fetch('http://localhost:3000/api/v1/points')
+      .then(response => response.json())
+      .then(data => {
+          console.log('Response from server:', data);
+          // Handle the response data as needed
+ 
+  
+          const xValues = data.data.map(point => point.x);
+
+   console.log(xValues);
+
+//const allPoints = getAllPoints();
 L.marker([x, y]).addTo(map)
     .bindPopup('Jesteś tutaj')
     .openPopup();
@@ -88,6 +103,8 @@ L.marker([x, y]).addTo(map)
     .catch(error => {
       console.error('Error getting geolocation data:', error.message);
     });
+
+  })
 
 function onDeviceReady() {
     // Cordova is now initialized. Have fun!

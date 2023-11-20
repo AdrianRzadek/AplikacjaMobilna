@@ -1,10 +1,7 @@
 // In src/v1/routes/workoutRoutes.js
 const express = require("express");
-const apicache = require("apicache");
 const pointController = require("../../controllers/pointController");
 const router = express.Router();
-
-const cache = apicache.middleware;
 
 /**
  * @openapi
@@ -51,7 +48,6 @@ const cache = apicache.middleware;
  *                       example: "Some error message"
  *  */
 
-router.get("/", cache("2 minutes"), pointController.getAllPoints);
 
 router.get("/", pointController.getAllPoints);
 

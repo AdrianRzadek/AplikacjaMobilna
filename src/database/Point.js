@@ -11,7 +11,7 @@ const getAllPoints = () => {
 };
 const getOnePoint = (pointId) => {
   try {
-  const point = DB.points.find((point) => point.id === pointId);
+  const point = DB.points.find((point) => point.name === pointId);
   if (!point) {
     throw {
       status: 400,
