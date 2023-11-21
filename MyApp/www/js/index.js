@@ -76,18 +76,21 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 
 
+fetch(`http://localhost:3000/api/v1/points`)
+.then(response => response.json())
+.then(data => {
+  var pointsArray = data.data;
+    console.log('Response from points array:', pointsArray);
 
-  // Example GET request
-  fetch('http://localhost:3000/api/v1/points')
-      .then(response => response.json())
-      .then(data => {
-          console.log('Response from server:', data);
-          // Handle the response data as needed
- 
-  
-          const xValues = data.data.map(point => point.x);
-
-   console.log(xValues);
+    pointsArray.forEach((point) => {
+      const pointId = point.id; // Access the ID property of the point
+      fetch(`http://localhost:3000/api/v1/points/${pointId}`)
+        .then(response => response.json())
+        .then(data => {
+          // Handle the data for each point here
+          console.log(`Point ${pointId}:`, data);
+        })
+  })
 
 //const allPoints = getAllPoints();
 L.marker([x, y]).addTo(map)
@@ -116,3 +119,4 @@ function onDeviceReady() {
     
 
 }
+  
