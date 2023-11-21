@@ -92,6 +92,7 @@ fetch(`http://localhost:3000/api/v1/points`)
           const waypoints = pointsArray.map(point => L.latLng(point.x, point.y));
           waypoints.unshift(L.latLng(x, y));
 //const allPoints = getAllPoints();
+//if x and y == array.waipoint  map.removeLayer(marker(x,y))
 L.marker([x, y]).addTo(map)
     .bindPopup('Jesteś tutaj')
     .openPopup();
@@ -102,6 +103,22 @@ L.marker([x, y]).addTo(map)
     .catch(error => {
       console.error('Error getting geolocation data:', error.message);
     });
+
+    function moveMarkers() {
+      waypoints.forEach(waypoint => {
+        const marker = waypointLayer.getLayers().find(layer => layer.getLatLng().equals(waypoint.latLng));
+    
+        // Check if the marker has reached its destination
+        if (marker && marker.getLatLng().equals(waypoint.latLng)) {
+          // Remove the marker from the layer group and the map
+          waypointLayer.removeLayer(marker);
+          console.log(`Point ${waypoint.pointId} reached its destination and was removed.`);
+        }
+      });
+    }
+    
+    // Example: Simulate moving the markers every second
+    setInterval(moveMarkers, 1000);
 
   })
 })

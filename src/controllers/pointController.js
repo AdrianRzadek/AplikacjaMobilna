@@ -27,7 +27,7 @@ const getOnePoint = (req, res) => {
 
 const createNewPoint = (req, res) => {
   const { body } = req;
-  if (!body.name) {
+  if (!body.id) {
     res.status(400).send({
       status: "FAILED",
       data: {
@@ -39,7 +39,7 @@ const createNewPoint = (req, res) => {
   }
 
   const newPoint = {
-    name: body.name,
+    id: body.id,
     x: body.x,
     y: body.y,
   };
