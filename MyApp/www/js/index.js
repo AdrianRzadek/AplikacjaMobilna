@@ -89,25 +89,23 @@ fetch(`http://localhost:3000/api/v1/points`)
         .then(data => {
           // Handle the data for each point here
           console.log(`Point ${pointId}:`, data);
-        })
-  })
-
+          const waypoints = pointsArray.map(point => L.latLng(point.x, point.y));
+          waypoints.unshift(L.latLng(x, y));
 //const allPoints = getAllPoints();
 L.marker([x, y]).addTo(map)
     .bindPopup('Jesteś tutaj')
     .openPopup();
     L.Routing.control({
-        waypoints: [
-          L.latLng(x, y),
-          L.latLng(49.7798990, 19.0603930)
-        ]
-      }).addTo(map);
+      waypoints: waypoints,
+    }).addTo(map);
     })
     .catch(error => {
       console.error('Error getting geolocation data:', error.message);
     });
 
   })
+})
+})
 
 function onDeviceReady() {
     // Cordova is now initialized. Have fun!
