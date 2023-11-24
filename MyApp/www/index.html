@@ -43,6 +43,7 @@
       type="text/javascript"
       src="../node_modules/leaflet/dist/leaflet.js"
     ></script>
+  
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
 <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
@@ -55,9 +56,9 @@
    
       <div id="map"></div>
       <div>
-        <button onclick="setRoute(1)">1</button>
-        <button onclick="setRoute(2)">2</button>
-        <button onclick="setRoute(3)">3</button>
+        <button id="route" value="route1" onclick="RouteClick(1)">Route 1</button>
+        <button id="route" value="route2" onclick="RouteClick(2)">Route 2</button>
+        <button id="route" value="route3" onclick="RouteClick(3)">Route 3</button>
       </div>
  
 

@@ -74,51 +74,46 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
-var routeNumber = getElementById();
-fetch(`http://localhost:3000/api/v1/points`)
-.then(response => response.json())
-.then(data => {
-  var pointsArray = data.data;
-    console.log('Response from points array:', pointsArray);
 
-    pointsArray.forEach((point) => {
-      const pointId = point.id; // Access the ID property of the point
-      fetch(`http://localhost:3000/api/v1/points/${pointId}`)
-        .then(response => response.json())
-        .then(data => {
-          // Handle the data for each point here
-          console.log(`Point ${pointId}:`, data);
+var buttons = document.querySelectorAll('button');
+    
+    buttons.forEach(function(button) {
+        button.addEventListener("click", function() {
+          var routeId = button.value;
+
+
+
+          fetch(`http://localhost:3000/api/v1/points`)
+          .then(response => response.json())
+          .then(data => {
+              var routes = data.data;
+
+              // Find the selected route based on routeId
+              var selectedRoute = routes.find(route => route.hasOwnProperty(routeId));
+
+              if (selectedRoute) {
+                  var pointsArray = selectedRoute[routeId];
+
+                  console.log(`Response from points array for route ${routeId}:`, pointsArray);
+             
+       
+         
           const waypoints = pointsArray.map(point => L.latLng(point.x, point.y));
           waypoints.unshift(L.latLng(x, y));
-//const allPoints = getAllPoints();
-//if x and y == array.waipoint  map.removeLayer(marker(x,y))
+             
 L.marker([x, y]).addTo(map)
     .bindPopup('Jesteś tutaj')
     .openPopup();
     L.Routing.control({
       waypoints: waypoints,
     }).addTo(map);
+  }
     })
     .catch(error => {
       console.error('Error getting geolocation data:', error.message);
     });
-
-    function moveMarkers() {
-      waypoints.forEach(waypoint => {
-        const marker = waypointLayer.getLayers().find(layer => layer.getLatLng().equals(waypoint.latLng));
-    
-        // Check if the marker has reached its destination
-        if (marker && marker.getLatLng().equals(waypoint.latLng)) {
-          // Remove the marker from the layer group and the map
-          waypointLayer.removeLayer(marker);
-          console.log(`Point ${waypoint.pointId} reached its destination and was removed.`);
-        }
-      });
-    }
-    
-    // Example: Simulate moving the markers every second
-    setInterval(moveMarkers, 1000);
-
+  
+   
   })
 })
 })
