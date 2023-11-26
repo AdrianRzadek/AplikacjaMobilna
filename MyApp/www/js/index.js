@@ -108,16 +108,21 @@ getGeolocationData().then((data) => {
             );
             waypoints.unshift(L.latLng(x, y));
          
-
-            L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
-            routingControl = L.Routing.control({
+         
+            var marker = L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
+          var routingControl = L.Routing.control({
               waypoints: waypoints,
             }).addTo(map);
+
+
             if(routeOldId !== routeId){
             console.log('Value changed from', routeOldId, 'to', routeId);
-         
-           // removeAllWaypoints();
-           
+        
+            map.eachLayer(function (layer) {
+              if (layer instanceof L.Marker) {
+                map.removeLayer(layer);
+              }
+        });
 
               L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
               routingControl = L.Routing.control({
