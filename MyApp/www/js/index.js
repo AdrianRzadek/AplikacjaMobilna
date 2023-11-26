@@ -128,6 +128,11 @@ getGeolocationData().then((data) => {
                 // Delete L.Polyline layers
                 map.removeLayer(layer);
               }
+              const routingContainer = document.querySelector('.leaflet-routing-container');
+              if (routingContainer) {
+                routingContainer.parentNode.removeChild(routingContainer);
+              }
+         
         });
    
               L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
