@@ -118,12 +118,18 @@ getGeolocationData().then((data) => {
             if(routeOldId !== routeId){
             console.log('Value changed from', routeOldId, 'to', routeId);
         
-            map.eachLayer(function (layer) {
+              
+
+        map.eachLayer(function (layer) {
               if (layer instanceof L.Marker) {
+                map.removeLayer(layer);
+               
+              }else if (layer instanceof L.Polyline) {
+                // Delete L.Polyline layers
                 map.removeLayer(layer);
               }
         });
-
+   
               L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
               routingControl = L.Routing.control({
                 waypoints: waypoints,
