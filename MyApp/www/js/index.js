@@ -1,35 +1,13 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
-// Wait for the deviceready event before using any of Cordova's device APIs.
-// See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
-
 document.addEventListener("deviceready", onDeviceReady, false);
 
 // Declare a global object to store geolocation data
-//var geolocationData = {};
+let geolocationData = {};
 
 // Define a function to get geolocation data as a Promise
 function getGeolocationData() {
   return new Promise((resolve, reject) => {
     // Define the success callback function
-    var onSuccess = function (position) {
+    const onSuccess = function (position) {
       geolocationData = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -46,116 +24,118 @@ function getGeolocationData() {
     };
 
     // Define the error callback function
-    function onError(error) {
+    const onError = function (error) {
       reject(error);
-    }
+    };
 
     // Get the current geolocation position
     navigator.geolocation.getCurrentPosition(onSuccess, onError);
   });
 }
 
-// Use the Promise to get geolocation data
-getGeolocationData().then((data) => {
-  console.log(data.latitude);
-  console.log(data.longitude);
-  // You can use other geolocationData properties here
-  var x = data.latitude;
-  var y = data.longitude;
+// Function to store data in localStorage
+function storeDataInLocalStorage(routes, routeId) {
+  localStorage.setItem("routes", JSON.stringify(routes));
+  localStorage.setItem("routeId", JSON.stringify(routeId));
 
-  console.log(x);
-  console.log(y);
+  const selectedRoute = routes.find((route) => route.hasOwnProperty(routeId));
 
-  var map = L.map("map").setView([x, y], 13);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  if (selectedRoute) {
+    localStorage.setItem("selectedRoute", JSON.stringify(selectedRoute));
+  } else {
+    console.error("Selected route not found");
+  }
+
+  const pointsArray = selectedRoute ? selectedRoute[routeId] : null;
+
+  localStorage.setItem("pointsArray", JSON.stringify(pointsArray));
+
+  console.log(`Response from points array for route ${routeId}:`, pointsArray);
+}
+
+// Function to create map, marker, and routing control
+function createMapAndRoutingControl(map, waypoints) {
+  L.marker([geolocationData.latitude, geolocationData.longitude])
+    .addTo(map)
+    .bindPopup("Jesteś tutaj")
+    .openPopup();
+
+  const routingControl = L.Routing.control({
+    waypoints: waypoints,
   }).addTo(map);
 
+  return routingControl;
+}
 
-  var buttons = document.querySelectorAll('button');
-  var routeId;
-  var routeOldId;
-  var routingControl;
-  buttons.forEach(function(button) {
-   // Store the initial value
-  
-      button.addEventListener("click", function() {
-          console.log('Button clicked. Current value:', button.value);
-          // Check if the value has changed
-         
-       
-      fetch(`http://localhost:3000/api/v1/points`)
-        .then((response) => response.json())
-        .then((data) => {
-          var routes = data.data;
-          routeId = button.value; 
-          // Find the selected route based on routeId
-          var selectedRoute = routes.find((route) =>
-            route.hasOwnProperty(routeId)
-          );
+// Wait for geolocation data and then proceed
+getGeolocationData().then((data) => {
+  const x = data.latitude;
+  const y = data.longitude;
 
-          if (selectedRoute) {
-            var pointsArray = selectedRoute[routeId];
+  const map = L.map("map").setView([x, y], 13);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
 
-            console.log(
-              `Response from points array for route ${routeId}:`,
-              pointsArray
-            );
+  const buttons = document.querySelectorAll("button");
 
-            const waypoints = pointsArray.map((point) =>
-              L.latLng(point.x, point.y)
-            );
-            waypoints.unshift(L.latLng(x, y));
-         
-         
-            var marker = L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
-          var routingControl = L.Routing.control({
-              waypoints: waypoints,
-            }).addTo(map);
+  let routeOldId;
+  let routingControl;
 
+  buttons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      console.log("Button clicked. Current value:", button.value);
 
-            if(routeOldId !== routeId){
-            console.log('Value changed from', routeOldId, 'to', routeId);
-        
-              
+      // Fetch data from the API
+      try {
+        const response = await fetch("http://localhost:3000/api/v1/points");
 
-        map.eachLayer(function (layer) {
-              if (layer instanceof L.Marker) {
-                map.removeLayer(layer);
-               
-              }else if (layer instanceof L.Polyline) {
-                // Delete L.Polyline layers
-                map.removeLayer(layer);
-              }
-              const routingContainer = document.querySelector('.leaflet-routing-container');
-              if (routingContainer) {
-                routingContainer.parentNode.removeChild(routingContainer);
-              }
-         
-        });
-   
-              L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
-              routingControl = L.Routing.control({
-                waypoints: waypoints,
-              }).addTo(map);
-            }
-            
+        if (!response.ok) {
+          throw new Error("Failed to fetch data from the API");
+        }
+
+        const data = await response.json();
+        const routes = data.data;
+        const routeId = button.value;
+
+        storeDataInLocalStorage(routes, routeId);
+
+        const storedRouteId = JSON.parse(localStorage.getItem("routeId"));
+        const storedPointsArray = JSON.parse(localStorage.getItem("pointsArray"));
+
+        const waypoints = storedPointsArray.map((point) => L.latLng(point.x, point.y));
+        waypoints.unshift(L.latLng(x, y));
+
+        // Remove existing layers and routing container
+        map.eachLayer((layer) => {
+          if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+            map.removeLayer(layer);
           }
-          routeOldId = routeId; 
-        
-        })
-        .catch((error) => {
-          console.error("Error getting geolocation data:", error.message);
         });
-      } 
-    );
+
+        const routingContainer = document.querySelector(".leaflet-routing-container");
+        if (routingContainer) {
+          routingContainer.parentNode.removeChild(routingContainer);
+        }
+
+        // Create map, marker, and routing control
+        routingControl = createMapAndRoutingControl(map, waypoints);
+
+        // Additional logic for checking if routeId has changed
+        if (routeOldId !== storedRouteId) {
+          console.log("Value changed from", routeOldId, "to", storedRouteId);
+        }
+
+        // Update routeOldId
+        routeOldId = storedRouteId;
+      } catch (error) {
+        console.error(error);
+      }
+    });
   });
 });
 
 function onDeviceReady() {
-  // Cordova is now initialized. Have fun!
-
   console.log("Running cordova-" + cordova.platformId + "@" + cordova.version);
   document.getElementById("deviceready").classList.add("ready");
 }
