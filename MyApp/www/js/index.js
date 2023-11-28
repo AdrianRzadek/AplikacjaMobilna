@@ -1,11 +1,9 @@
 document.addEventListener("deviceready", onDeviceReady, false);
 
-let geolocationData = {};
-
 function getGeolocationData() {
   return new Promise((resolve, reject) => {
     const onSuccess = function (position) {
-      geolocationData = {
+      const geolocationData = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         altitude: position.coords.altitude,
@@ -26,12 +24,24 @@ function getGeolocationData() {
   });
 }
 
+function getWaypoints() {
+  const storedWaypoints = localStorage.getItem('waypoints');
+  return storedWaypoints ? JSON.parse(storedWaypoints) : null;
+}
+
+function setWaypoints(waypoints) {
+  localStorage.setItem('waypoints', JSON.stringify(waypoints));
+}
+
 function createMap(x, y) {
   const map = L.map("map").setView([x, y], 13);
 
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
+
+  // Add the marker for the current location
+  L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
 
   return map;
 }
@@ -61,8 +71,14 @@ function onButtonClick(button, x, y, map, routeOldId) {
   button.addEventListener("click", function () {
     console.log('Button clicked. Current value:', button.value);
 
+    // Attempt to fetch data from the API
     fetch(`http://localhost:3000/api/v1/points`)
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
       .then((data) => {
         const routes = data.data;
         const routeId = button.value;
@@ -75,9 +91,14 @@ function onButtonClick(button, x, y, map, routeOldId) {
           const waypoints = pointsArray.map((point) => L.latLng(point.x, point.y));
           waypoints.unshift(L.latLng(x, y));
 
+          // Store waypoints in local storage
+          setWaypoints(waypoints);
+
           clearMapLayers(map);
 
+          // Add the marker for the current location
           L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
+
           const routingControl = createRoutingControl(map, waypoints);
 
           if (routeOldId !== routeId) {
@@ -88,26 +109,71 @@ function onButtonClick(button, x, y, map, routeOldId) {
         }
       })
       .catch((error) => {
-        console.error("Error getting geolocation data:", error.message);
+        console.error("Error getting data from the API:", error.message);
+
+        // Attempt to use stored waypoints from local storage
+        const storedWaypoints = getWaypoints();
+        if (storedWaypoints) {
+          console.log('Using waypoints from local storage:', storedWaypoints);
+
+          clearMapLayers(map);
+
+          // Add the marker for the current location
+          L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
+
+          const routingControl = createRoutingControl(map, storedWaypoints);
+
+          if (routeOldId !== button.value) {
+            console.log('Value changed from', routeOldId, 'to', button.value);
+          }
+
+          routeOldId = button.value;
+        } else {
+          console.error('No waypoints available in local storage');
+        }
       });
   });
 }
 
-getGeolocationData().then((data) => {
-  const x = data.latitude;
-  const y = data.longitude;
+function handleApiError(x, y) {
+  // Attempt to use stored waypoints if API call fails
+  const storedWaypoints = getWaypoints();
+  if (storedWaypoints) {
+    const map = createMap(x, y);
 
-  const map = createMap(x, y);
-
-  const buttons = document.querySelectorAll('button');
-  let routeOldId;
-
-  buttons.forEach((button) => {
-    onButtonClick(button, x, y, map, routeOldId);
-  });
-});
+    // Additional logic to handle the button click using the stored waypoints
+    const buttons = document.querySelectorAll('button');
+    let routeOldId;
+    buttons.forEach((button) => {
+      onButtonClick(button, x, y, map, routeOldId);
+    });
+  }
+}
 
 function onDeviceReady() {
   console.log("Running cordova-" + cordova.platformId + "@" + cordova.version);
-  document.getElementById("deviceready").classList.add("ready");
+
+  // Get geolocation data and initialize the map
+  getGeolocationData()
+    .then((data) => {
+      const x = data.latitude;
+      const y = data.longitude;
+
+      // Create the map once the geolocation data is obtained
+      const map = createMap(x, y);
+
+      // Add event listeners for buttons
+      const buttons = document.querySelectorAll('button');
+      let routeOldId;
+      buttons.forEach((button) => {
+        onButtonClick(button, x, y, map, routeOldId);
+      });
+    })
+    .catch((error) => {
+      console.error("Error getting geolocation data:", error.message);
+      // Handle the case where geolocation data is not available
+    });
 }
+
+// Call onDeviceReady directly if not using Cordova
+// onDeviceReady();
