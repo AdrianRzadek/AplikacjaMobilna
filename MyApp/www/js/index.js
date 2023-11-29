@@ -88,19 +88,20 @@ function onButtonClick(button, x, y, map, routeOldId) {
           const pointsArray = selectedRoute[routeId];
           console.log(`Response from points array for route ${routeId}:`, pointsArray);
 
-          // Create an array of waypoints with descriptions
+          // Create an array of waypoints with descriptions and image paths
           const waypoints = pointsArray.map((point) => ({
             latLng: L.latLng(point.x, point.y),
             description: point.description || 'No description available',
+            imagePath: point.imagePath || './img/logo.png', // Use a default image if imagePath is not provided
           }));
-          waypoints.unshift({ latLng: L.latLng(x, y), description: 'Jesteś tutaj' });
+          waypoints.unshift({ latLng: L.latLng(x, y), description: 'Jesteś tutaj', imagePath: './img/logo.png' });
 
           // Store waypoints in local storage
           setWaypoints(waypoints);
 
           clearMapLayers(map);
 
-          // Add markers for each waypoint with descriptions
+          // Add markers for each waypoint with descriptions and images
           waypoints.forEach((waypoint) => {
             const marker = L.marker(waypoint.latLng).addTo(map);
 
@@ -110,6 +111,16 @@ function onButtonClick(button, x, y, map, routeOldId) {
 
             // Use bindPopup to add a popup to the marker (optional)
             marker.bindPopup(waypoint.description).openPopup();
+
+            // Add the image to the marker
+            const icon = L.icon({
+              iconUrl: waypoint.imagePath,
+              iconSize: [32, 32], // adjust the size as needed
+              iconAnchor: [16, 16],
+              popupAnchor: [0, -16],
+            });
+
+            marker.setIcon(icon);
           });
 
           const routingControl = createRoutingControl(map, waypoints.map((w) => w.latLng));
@@ -131,7 +142,7 @@ function onButtonClick(button, x, y, map, routeOldId) {
 
           clearMapLayers(map);
 
-          // Add markers for each stored waypoint with descriptions
+          // Add markers for each stored waypoint with descriptions and images
           storedWaypoints.forEach((waypoint) => {
             const marker = L.marker(waypoint.latLng).addTo(map);
 
@@ -141,6 +152,16 @@ function onButtonClick(button, x, y, map, routeOldId) {
 
             // Use bindPopup to add a popup to the marker (optional)
             marker.bindPopup(waypoint.description).openPopup();
+
+            // Add the image to the marker
+            const icon = L.icon({
+              iconUrl: waypoint.imagePath,
+              iconSize: [32, 32], // adjust the size as needed
+              iconAnchor: [16, 16],
+              popupAnchor: [0, -16],
+            });
+
+            marker.setIcon(icon);
           });
 
           const routingControl = createRoutingControl(map, storedWaypoints.map((w) => w.latLng));
@@ -156,7 +177,6 @@ function onButtonClick(button, x, y, map, routeOldId) {
       });
   });
 }
-
 
 
 function onDeviceReady() {
