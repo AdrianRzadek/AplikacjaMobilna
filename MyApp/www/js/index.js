@@ -88,18 +88,31 @@ function onButtonClick(button, x, y, map, routeOldId) {
           const pointsArray = selectedRoute[routeId];
           console.log(`Response from points array for route ${routeId}:`, pointsArray);
 
-          const waypoints = pointsArray.map((point) => L.latLng(point.x, point.y));
-          waypoints.unshift(L.latLng(x, y));
+          // Create an array of waypoints with descriptions
+          const waypoints = pointsArray.map((point) => ({
+            latLng: L.latLng(point.x, point.y),
+            description: point.description || 'No description available',
+          }));
+          waypoints.unshift({ latLng: L.latLng(x, y), description: 'Jesteś tutaj' });
 
           // Store waypoints in local storage
           setWaypoints(waypoints);
 
           clearMapLayers(map);
 
-          // Add the marker for the current location
-          L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
+          // Add markers for each waypoint with descriptions
+          waypoints.forEach((waypoint) => {
+            const marker = L.marker(waypoint.latLng).addTo(map);
 
-          const routingControl = createRoutingControl(map, waypoints);
+            // Use bindTooltip to add a tooltip to the marker
+            marker.bindTooltip(waypoint.description, { permanent: false, interactive: true })
+              .openTooltip();
+
+            // Use bindPopup to add a popup to the marker (optional)
+            marker.bindPopup(waypoint.description).openPopup();
+          });
+
+          const routingControl = createRoutingControl(map, waypoints.map((w) => w.latLng));
 
           if (routeOldId !== routeId) {
             console.log('Value changed from', routeOldId, 'to', routeId);
@@ -118,10 +131,19 @@ function onButtonClick(button, x, y, map, routeOldId) {
 
           clearMapLayers(map);
 
-          // Add the marker for the current location
-          L.marker([x, y]).addTo(map).bindPopup("Jesteś tutaj").openPopup();
+          // Add markers for each stored waypoint with descriptions
+          storedWaypoints.forEach((waypoint) => {
+            const marker = L.marker(waypoint.latLng).addTo(map);
 
-          const routingControl = createRoutingControl(map, storedWaypoints);
+            // Use bindTooltip to add a tooltip to the marker
+            marker.bindTooltip(waypoint.description, { permanent: false, interactive: true })
+              .openTooltip();
+
+            // Use bindPopup to add a popup to the marker (optional)
+            marker.bindPopup(waypoint.description).openPopup();
+          });
+
+          const routingControl = createRoutingControl(map, storedWaypoints.map((w) => w.latLng));
 
           if (routeOldId !== button.value) {
             console.log('Value changed from', routeOldId, 'to', button.value);
@@ -135,20 +157,7 @@ function onButtonClick(button, x, y, map, routeOldId) {
   });
 }
 
-function handleApiError(x, y) {
-  // Attempt to use stored waypoints if API call fails
-  const storedWaypoints = getWaypoints();
-  if (storedWaypoints) {
-    const map = createMap(x, y);
 
-    // Additional logic to handle the button click using the stored waypoints
-    const buttons = document.querySelectorAll('button');
-    let routeOldId;
-    buttons.forEach((button) => {
-      onButtonClick(button, x, y, map, routeOldId);
-    });
-  }
-}
 
 function onDeviceReady() {
   console.log("Running cordova-" + cordova.platformId + "@" + cordova.version);
@@ -174,6 +183,3 @@ function onDeviceReady() {
       // Handle the case where geolocation data is not available
     });
 }
-
-// Call onDeviceReady directly if not using Cordova
-// onDeviceReady();
